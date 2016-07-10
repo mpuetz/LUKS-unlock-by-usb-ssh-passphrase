@@ -18,35 +18,37 @@ if [ $prepared == "y" ]
                         done
                 echo "please enter the sector you want the key to end at"
                 read sectorend
-okay="0"
-While [ $okay -eq 0 ]
-do
-keysize=$(( ($sectorend - $sectorstart ) * $blocksize ))
-echo "your key will be "$keysize" bytes. Is that okay?"
-Echo "0=no, 1=yes"
-Read okay
-If [ $okay == "0" ]
-Then
-echo "Please enter the sector you want the key to start at."
-read sectorstart
-while [ $sectorstart -le "1" ]
-do
-echo "1 and less are not valid startsectors. Please enter another."
-read sectorstart
-done
-echo "Please enter the sector you want your key to end at."
-read sectorend
-Elif [ $okay == "1" ]
-Then
-Echo "Great! Continuing"
-Else
-okay="0"
-done
+		okay="0"
+		While [ $okay -eq 0 ]
+			do
+				keysize=$(( ( $sectorend - $sectorstart ) * $blocksize ))
+				echo "your key will be "$keysize" bytes. Is that okay?"
+				Echo "0=no, 1=yes"
+				Read okay
+				If [ $okay == "0" ]
+					Then
+						echo "Please enter the sector you want the key to start at."
+						read sectorstart
+						while [ $sectorstart -le "1" ]
+							do
+							echo "1 and less are not valid startsectors. Please enter another."
+							read sectorstart
+						done
+						echo "Please enter the sector you want your key to end at."
+						read sectorend
+				Elif [ $okay == "1" ]
+					Then
+						Echo "Great! Continuing"
+				Else
+						okay="0"
+			done
                 if [ "$devuuid" == "" ] || [ "$blocksize" == "" ] || [ "$sectorstart" == "" ] || [ "$sectorend" == "" ]
                         then
                                 echo "something went terribly wrong. Aborting"
                                 exit 255
                 fi
+        skipblocks=$(( $sectorstart - 1 ))
+        readblocks=$(( $sectorend - $sectorstart ))
 elif [ $prepared == "n" ]
         then
                 echo "well, then do that now ;)"
@@ -65,6 +67,40 @@ else
 		mkdir /etc/decryptkeydevice/ && echo "folder successfully created!"
 fi
 
+# checking if the unlocking-file already exists. when it does, it will be moved.
+if [ -f /etc/decryptkeydevice/decryptkeydevice_keyscript.sh ]
+	then
+		echo "file already exists, moving to /etc/decryptkeydevice/decryptkeydevice_keyscript.sh.old"
+		mv /etc/decryptkeydevice/decryptkeydevice_keyscript.sh /etc/decryptkeydevice/decryptkeydevice_keyscript.sh.old
+fi
+
+# checking if the configuration-file already exists. when it does, it will be moved.
+if [ -f /etc/decryptkeydevice/decryptkeydevice.conf ]
+	then
+		echo "file already exists, moving to /etc/decryptkeydevice/decryptkeydevice.conf.old"
+		mv /etc/decryptkeydevice/decryptkeydevice.conf /etc/decryptkeydevice/decryptkeydevice.conf.old
+fi
+
+# creating conf-file for unlocking
+cat << EOF>/etc/decryptkeydevice/decryptkeydevice.conf
+# configuration for decryptkeydevice
+#
+
+# ID(s) of the USB/MMC key(s) for decryption (sparated by blanks)
+# as listed in /dev/disk/by-id/
+DECRYPTKEYDEVICE_DISKID="$devuuid"
+
+# blocksize usually 512 is OK
+DECRYPTKEYDEVICE_BLOCKSIZE="$blocksize"
+
+# start of key information on keydevice DECRYPTKEYDEVICE_BLOCKSIZE * DECRYPTKEYDEVICE_SKIPBLOCKS
+DECRYPTKEYDEVICE_SKIPBLOCKS="$skipblocks"
+
+# length of key information on keydevice DECRYPTKEYDEVICE_BLOCKSIZE * DECRYPTKEYDEVICE_READBLOCKS
+DECRYPTKEYDEVICE_READBLOCKS="$readblocks"
+EOF
+
+# creating unlocking-script
 cat << EOF>/etc/decryptkeydevice/decryptkeydevice_keyscript.sh
 #!/bin/sh
 #
@@ -113,7 +149,7 @@ fi
 TRUE=1
 FALSE=0
 
-# set DEBUG=\$TRUE to display debug messages, DEBUG=$FALSE to be quiet
+# set DEBUG=\$TRUE to display debug messages, DEBUG=\$FALSE to be quiet
 DEBUG=\$TRUE
 
 PLYMOUTH=\$FALSE
@@ -316,7 +352,7 @@ cat <<EOF >/etc/initramfs-tools/scripts/local-bottom/reset_network
 PREREQ=""
 prereqs()
 {
-    echo "$PREREQ"
+    echo "\$PREREQ"
 }
 case \$1 in
     prereqs)
@@ -327,7 +363,7 @@ esac
 #
 # Begin real processing
 #
-ifaces=\$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print \$2}'|sed 's/:$//g')
+ifaces=\$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print \$2}'|sed 's/:\$//g')
 for iface in \$ifaces; do
     echo "Flushing network interface \$iface"
     ip addr flush \$iface
@@ -356,7 +392,7 @@ cat << EOF>/etc/initramfs-tools/scripts/local-bottom/kill_dropbear_connections
 PREREQ=""
 prereqs()
 {
-    echo "$PREREQ"
+    echo "\$PREREQ"
 }
 case \$1 in
     prereqs)
@@ -489,7 +525,7 @@ cat <<EOF >/etc/initramfs-tools/scripts/local-bottom/reset_network
 PREREQ=""
 prereqs()
 {
-    echo "$PREREQ"
+    echo "\$PREREQ"
 }
 case \$1 in
     prereqs)
@@ -500,7 +536,7 @@ esac
 #
 # Begin real processing
 #
-ifaces=\$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print \$2}'|sed 's/:$//g')
+ifaces=\$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print \$2}'|sed 's/:\$//g')
 for iface in \$ifaces; do
     echo "Flushing network interface \$iface"
     ip addr flush \$iface
@@ -529,7 +565,7 @@ cat << EOF>/etc/initramfs-tools/scripts/local-bottom/kill_dropbear_connections
 PREREQ=""
 prereqs()
 {
-    echo "$PREREQ"
+    echo "\$PREREQ"
 }
 case \$1 in
     prereqs)
@@ -567,7 +603,7 @@ do
     done
     [ "\${skip}" -ne 0 ] && continue
     # kill process
-    echo "\$0: Killing ${pid}..."
+    echo "\$0: Killing \${pid}..."
     kill \${pid}
 done
 EOF
