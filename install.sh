@@ -7,15 +7,19 @@ echo "y=yes, n=no"
 read -p "prepared?: " prepared
 if [ $prepared == "y" ]
         then
-                echo "Please enter the UUID now"
+                echo "Please enter the usb disk-id now (sda, sdb, sdc... without the partition numbers!)"
                 read devuuid
+                echo "Please enter the usb uuid now (e.g. usb-XyzFlash_XYZDFGHIJK_XXYYZZ00AA-0:0   or   mmc-XXX_0x0AAABBBCCCDDD)"
+                read usbuuid
                 echo "Please enter the blocksize"
                 read blocksize
+                echo "Please enter the sector, the first partition starts at"
+                read firstpart
                 echo "please enter the sector you want the key to start at"
                 read sectorstart
-                while [ $sectorstart -le "1" ]
+                while [ $sectorstart -le "0" ]
                         do
-                                echo "1 and less are not allowed as the start sector. Please enter another startsector."
+                                echo "0 and less are not allowed as the start sector. Please enter another startsector."
                                 read sectorstart
                         done
                 echo "please enter the sector you want the key to end at"
@@ -31,9 +35,9 @@ if [ $prepared == "y" ]
 					Then
 						echo "Please enter the sector you want the key to start at."
 						read sectorstart
-						while [ $sectorstart -le "1" ]
+						while [ $sectorstart -le "0" ]
 							do
-							echo "1 and less are not valid startsectors. Please enter another."
+							echo "0 and less are not valid startsectors. Please enter another."
 							read sectorstart
 						done
 						echo "Please enter the sector you want your key to end at."
@@ -49,7 +53,7 @@ if [ $prepared == "y" ]
                                 echo "something went terribly wrong. Aborting"
                                 exit 255
                 fi
-        skipblocks=$(( $sectorstart - 1 ))
+        skipblocks=$sectorstart
         readblocks=$(( $sectorend - $sectorstart ))
 elif [ $prepared == "n" ]
         then
@@ -90,7 +94,7 @@ cat << EOF>/etc/decryptkeydevice/decryptkeydevice.conf
 
 # ID(s) of the USB/MMC key(s) for decryption (sparated by blanks)
 # as listed in /dev/disk/by-id/
-DECRYPTKEYDEVICE_DISKID="$devuuid"
+DECRYPTKEYDEVICE_DISKID="$usbuuid"
 
 # blocksize usually 512 is OK
 DECRYPTKEYDEVICE_BLOCKSIZE="$blocksize"
@@ -334,6 +338,90 @@ mkdir -p \$DESTDIR/etc/
 cp -rp /etc/decryptkeydevice \$DESTDIR/etc/
 EOF
 chmod +x /etc/initramfs-tools/hooks/decryptkeydevice.hook
+
+# adding the key to the device
+if [ $devuuid == "/dev/*"]
+	then
+		devuuid=${devuuid##/dev/}
+fi
+
+if [ $devuuid == "*/" ]
+	then
+		devuuid=${devuuid%/}
+fi
+writeblocks=$(( firstpart - 1))
+dd if=/dev/urandom of=/dev/$devuuid bs=$blocksize seek=$sectorstart count=$writeblocks && echo "creating the key was successful!"
+
+# create a file from the key for adding the key to LUKSsetup
+dd if=/dev/$devuuid bs=$blocksize skip=$skipblocks count=$readblocks > /tmp/tempKeyFile.bin
+
+another="0"
+While [ $another == "0" ]
+do
+echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
+read devicename
+cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
+#echo "Do you want to add the key to another disk? (y=yes, n=no)"
+#read anotheranswer
+#if [ $anotheranswer == "n"]
+#	then
+		another="1"
+#fi
+done
+rm -f /tmp/tempKeyFile.bin
+
+#add the script to crypttab
+echo "Getting first cryptodisk in /etc/crypttab"
+lowestlinenr=9999
+for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID); do
+    linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
+    echo "Found $diskid on line $linenr"
+    if [ $linenr -lt $lowestlinenr ]; then
+        if [ $diskid == $devicename ]; then
+		cryptUUID=$diskid
+        fi
+        lowestlinenr=$linenr
+    fi
+done
+if [ -z "$cryptUUID" ]; then
+    echo "Unable to find a cryptodisk to use, exiting."
+    exit 1
+fi
+echo "Using cryptodisk $cryptUUID"
+#remove any previous keyscript
+sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
+#add our keyscript
+sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
+
+
+#Dropbear ssh unlock
+apt-get install -y dropbear initramfs-tools busybox
+
+#Add network drivers
+ifaces=$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print $2}'|sed 's/:$//g')
+for iface in $ifaces; do
+    if [ -f /sys/class/net/$iface/device/uevent ]; then
+        echo "Found interface $iface"
+		ifacemod="$(grep DRIVER /sys/class/net/$iface/device/uevent |awk -F'=' '{print $2}')"
+		grep -q "^$ifacemod$" /etc/initramfs-tools/modules || echo "$ifacemod" >> /etc/initramfs-tools/modules
+    fi
+done
+
+#explicitely enable dropbear (=default behavior), won't touch existing setting if any
+(grep -qs '^DROPBEAR=' /etc/initramfs-tools/conf.d/dropbear || \
+ grep '^DROPBEAR=' /etc/initramfs-tools/initramfs.conf || \
+ echo 'DROPBEAR=y' \
+) >> /etc/initramfs-tools/conf.d/dropbear
+#explicitely set ip to dhcp (=default behavior), won't touch existing setting if any
+(grep -qs '^IP=' /etc/initramfs-tools/conf.d/dropbear || \
+ grep '^IP=' /etc/initramfs-tools/initramfs.conf || \
+ echo 'IP=dhcp' \
+) >> /etc/initramfs-tools/conf.d/dropbear
+#disallow password logins (=non-default behavior), set port to 22 (=default behavior), won't touch existing setting if any
+(grep -qs 'PKGOPTION_dropbear_OPTION=' /etc/initramfs-tools/conf.d/dropbear || \
+ grep 'PKGOPTION_dropbear_OPTION=' /etc/initramfs-tools/initramfs.conf || \
+ echo 'export PKGOPTION_dropbear_OPTION="-s -p 22"' \
+) >> /etc/initramfs-tools/conf.d/dropbear
 
 #Write initramfs scripts
 #
@@ -679,3 +767,10 @@ update-initramfs -u -k $(uname -r)
 
 echo "************************************************************************"
 echo "DONE!"
+echo 
+echo "Copy /etc/initramfs-tools/root/.ssh/id_rsa to your local machine."
+echo "This is the private key you need to log into dropbear (no password, root@machinename)."
+echo "A better option is to add your own public key to /etc/initramfs-tools/root/.ssh/authorized_keys and rerun update-initramfs -u -k \`uname -r\`"
+echo 
+echo "Make sure you have a safe boot option before rebooting."
+echo "************************************************************************"
