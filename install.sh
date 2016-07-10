@@ -25,6 +25,22 @@ keysize=$(( ($sectorend - $sectorstart ) * $blocksize ))
 echo "your key will be "$keysize" bytes. Is that okay?"
 Echo "0=no, 1=yes"
 Read okay
+If [ $okay == "0" ]
+Then
+echo "Please enter the sector you want the key to start at."
+read sectorstart
+while [ $sectorstart -le "1" ]
+do
+echo "1 and less are not valid startsectors. Please enter another."
+read sectorstart
+done
+echo "Please enter the sector you want your key to end at."
+read sectorend
+Elif [ $okay == "1" ]
+Then
+Echo "Great! Continuing"
+Else
+okay="0"
 done
                 if [ "$devuuid" == "" ] || [ "$blocksize" == "" ] || [ "$sectorstart" == "" ] || [ "$sectorend" == "" ]
                         then
@@ -39,6 +55,8 @@ else
                 echo "Aborted"
                 exit 255
 fi
+
+#Check if the folder for the script and config-file already exists and otherwise creating the folder. 
 if [ -d /etc/decryptkeydevice/ ]
 	then
 		echo "folder already exists"
