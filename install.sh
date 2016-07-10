@@ -1,6 +1,8 @@
 #! /bin/bash
 # getting the needed informations about the device.
-echo "Please use 'fdisk -l' and write down the UUID, the blocksize and the beginning of the first partiton. Have you written down all the informations?"
+echo "Please use 'sudo fdisk -l' and write down the name of the device you want to decrypt and the name of your usb-drive (sda; sdb...)."
+echo "You will also need the UUID of your usb-drive (you can get it by executing 'sudo ls -l /dev/disk/by-id'), the blocksize and the beginning of the first partiton (you can get it by executing 'sudo fdisk -l /dev/name-of-your-usb-drive'."
+echo "Have you written down all the informations?"
 echo "y=yes, n=no"
 read -p "prepared?: " prepared
 if [ $prepared == "y" ]
