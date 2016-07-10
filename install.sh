@@ -18,6 +18,14 @@ if [ $prepared == "y" ]
                         done
                 echo "please enter the sector you want the key to end at"
                 read sectorend
+okay="0"
+While [ $okay -eq 0 ]
+do
+keysize=$(( ($sectorend - $sectorstart ) * $blocksize ))
+echo "your key will be "$keysize" bytes. Is that okay?"
+Echo "0=no, 1=yes"
+Read okay
+done
                 if [ "$devuuid" == "" ] || [ "$blocksize" == "" ] || [ "$sectorstart" == "" ] || [ "$sectorend" == "" ]
                         then
                                 echo "something went terribly wrong. Aborting"
