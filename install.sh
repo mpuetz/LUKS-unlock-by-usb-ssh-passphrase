@@ -113,17 +113,17 @@ fi
 TRUE=1
 FALSE=0
 
-# set DEBUG=$TRUE to display debug messages, DEBUG=$FALSE to be quiet
-DEBUG=$TRUE
+# set DEBUG=\$TRUE to display debug messages, DEBUG=$FALSE to be quiet
+DEBUG=\$TRUE
 
-PLYMOUTH=$FALSE
+PLYMOUTH=\$FALSE
 # test for plymouth and if plymouth is running
 if [ -x /bin/plymouth ] && plymouth --ping; then
-        PLYMOUTH=$TRUE
+        PLYMOUTH=\$TRUE
 fi
 
 # is usplash available? default false
-USPLASH=$FALSE
+USPLASH=\$FALSE
 # test for outfifo from Ubuntu Hardy cryptroot script, the second test
 # alone proves not completely reliable.
 if [ -p /dev/.initramfs/usplash_outfifo -a -x /sbin/usplash_write ]; then
@@ -133,22 +133,22 @@ if [ -p /dev/.initramfs/usplash_outfifo -a -x /sbin/usplash_write ]; then
     FAIL_NO_USPLASH=1
     # enable verbose messages (required to display messages if kernel boot option "quiet" is enabled
     /sbin/usplash_write "VERBOSE on"
-    if [ $? -eq $TRUE ]; then
+    if [ \$? -eq \$TRUE ]; then
         # usplash is running
-        USPLASH=$TRUE
+        USPLASH=\$TRUE
         /sbin/usplash_write "CLEAR"
     fi
 fi
 
 # is stty available? default false
-STTY=$FALSE
+STTY=\$FALSE
 STTYCMD=false
 # check for stty executable
 if [ -x /bin/stty ]; then
-	STTY=$TRUE
+	STTY=\$TRUE
 	STTYCMD=/bin/stty
-elif [ `(busybox stty >/dev/null 2>&1; echo $?)` -eq 0 ]; then
-	STTY=$TRUE
+elif [ `(busybox stty >/dev/null 2>&1; echo \$?)` -eq 0 ]; then
+	STTY=\$TRUE
 	STTYCMD="busybox stty"
 fi
 
@@ -161,17 +161,17 @@ fi
 # to the same line
 msg ()
 {
-	if [ $# -gt 0 ]; then
+	if [ \$# -gt 0 ]; then
 		# handle multi-line messages
-		echo $2 | while read LINE; do
-			if [ $PLYMOUTH -eq $TRUE ]; then
-				/bin/plymouth message --text="$1 $LINE"
-			elif [ $USPLASH -eq $TRUE ]; then
+		echo \$2 | while read LINE; do
+			if [ \$PLYMOUTH -eq \$TRUE ]; then
+				/bin/plymouth message --text="\$1 \$LINE"
+			elif [ \$USPLASH -eq \$TRUE ]; then
                 		# use usplash
-				/sbin/usplash_write "$1 $LINE"
+				/sbin/usplash_write "\$1 \$LINE"
 			else
 				# use stderr for all messages
-				echo $3 "$2" >&2
+				echo $3 "\$2" >&2
 			fi
 		done
 	fi
@@ -179,8 +179,8 @@ msg ()
 
 dbg ()
 {
-	if [ $DEBUG -eq $TRUE ]; then
-		msg "$@"
+	if [ \$DEBUG -eq \$TRUE ]; then
+		msg "\$@"
 	fi
 }
 
@@ -188,101 +188,101 @@ plymouth_readpass ()
 {
     local PASS PLPID
     local PIPE=/lib/cryptsetup/passfifo
-    mkfifo -m 0600 $PIPE
-    plymouth ask-for-password --prompt "$1"  >$PIPE &PLPID=$!
-    read PASS <$PIPE
-    kill $PLPID >/dev/null 2>&1
-    rm -f $PIPE
-    echo "$PASS"
+    mkfifo -m 0600 \$PIPE
+    plymouth ask-for-password --prompt "\$1"  >\$PIPE &PLPID=\$!
+    read PASS <\$PIPE
+    kill \$PLPID >/dev/null 2>&1
+    rm -f \$PIPE
+    echo "\$PASS"
 }
 
 # read password from console or with plymouth
 # usage: readpass "prompt"
 readpass ()
 {
-	if [ $# -gt 0 ]; then
-		if [ $PLYMOUTH -eq $TRUE ]; then
-			PASS=$(plymouth_readpass "$1")
-		elif [ $USPLASH -eq $TRUE ]; then
+	if [ \$# -gt 0 ]; then
+		if [ \$PLYMOUTH -eq \$TRUE ]; then
+			PASS=\$(plymouth_readpass "\$1")
+		elif [ \$USPLASH -eq \$TRUE ]; then
             		msg TEXT "WARNING No SSH unlock support available"
-			usplash_write "INPUTQUIET $1"
-            		PASS="$(cat /dev/.initramfs/usplash_outfifo)"
+			usplash_write "INPUTQUIET \$1"
+            		PASS="\$(cat /dev/.initramfs/usplash_outfifo)"
         	elif [ -f /lib/cryptsetup/askpass ]; then
-			PASS=$(/lib/cryptsetup/askpass "$1")
+			PASS=\$(/lib/cryptsetup/askpass "\$1")
 		else
 			msg TEXT "WARNING No SSH unlock support available"
-			[ $STTY -ne $TRUE ] && msg "WARNING stty not found, password will be visible"
-			echo -n "$1" >&2
-			$STTYCMD -echo
+			[ \$STTY -ne \$TRUE ] && msg "WARNING stty not found, password will be visible"
+			echo -n "\$1" >&2
+			\$STTYCMD -echo
 			read -r PASS </dev/console >/dev/null
-			[ $STTY -eq $TRUE ] && echo >&2
-			$STTYCMD echo
+			[ \$STTY -eq \$TRUE ] && echo >&2
+			\$STTYCMD echo
 		fi
 	fi
-	echo -n "$PASS"
+	echo -n "\$PASS"
 }
 
 # flag tracking key-file availability
-OPENED=$FALSE
+OPENED=\$FALSE
 
 # decryptkeydevice configured so try to find a key
-if [ ! -z "$DECRYPTKEYDEVICE_DISKID" ]; then
+if [ ! -z "\$DECRYPTKEYDEVICE_DISKID" ]; then
 	msg "Checking devices for decryption key ..."
 	# Is the USB driver loaded?
 	cat /proc/modules | busybox grep usb_storage >/dev/null 2>&1
-	USBLOAD=0$?
-	if [ $USBLOAD -gt 0 ]; then
+	USBLOAD=0\$?
+	if [ \$USBLOAD -gt 0 ]; then
 		dbg "Loading driver 'usb_storage'"
 		modprobe usb_storage >/dev/null 2>&1
 	fi
 	# Is the mmc_block driver loaded?
-#	cat /proc/modules | busybox grep mmc >/dev/null 2>&1
-#	MMCLOAD=0$?
-#	if [ $MMCLOAD -gt 0 ]; then
-#		dbg "Loading drivers for 'mmc'"
-#		modprobe mmc_core >/dev/null 2>&1
-#		modprobe ricoh_mmc >/dev/null 2>&1
-#		modprobe mmc_block >/dev/null 2>&1
-#		modprobe sdhci >/dev/null 2>&1
-#	fi
+	cat /proc/modules | busybox grep mmc >/dev/null 2>&1
+	MMCLOAD=0\$?
+	if [ \$MMCLOAD -gt 0 ]; then
+		dbg "Loading drivers for 'mmc'"
+		modprobe mmc_core >/dev/null 2>&1
+		modprobe ricoh_mmc >/dev/null 2>&1
+		modprobe mmc_block >/dev/null 2>&1
+		modprobe sdhci >/dev/null 2>&1
+	fi
 
 	# give the system time to settle and open the devices
 	sleep 5
 
-	for DECRYPTKEYDEVICE_ID in $DECRYPTKEYDEVICE_DISKID ; do
-		DECRYPTKEYDEVICE_FILE="/dev/disk/by-id/$DECRYPTKEYDEVICE_ID"
-		dbg "Trying disk/by-id/$DECRYPTKEYDEVICE_FILE ..."
-		if [ -e $DECRYPTKEYDEVICE_FILE ] ; then
-			dbg " found disk/by-id/$DECRYPTKEYDEVICE_FILE ..."
-			OPENED=$TRUE
+	for DECRYPTKEYDEVICE_ID in \$DECRYPTKEYDEVICE_DISKID ; do
+		DECRYPTKEYDEVICE_FILE="/dev/disk/by-id/\$DECRYPTKEYDEVICE_ID"
+		dbg "Trying disk/by-id/\$DECRYPTKEYDEVICE_FILE ..."
+		if [ -e \$DECRYPTKEYDEVICE_FILE ] ; then
+			dbg " found disk/by-id/\$DECRYPTKEYDEVICE_FILE ..."
+			OPENED=\$TRUE
 			break
 		fi
-		$DECRYPTKEYDEVICE_FILE=""
+		\$DECRYPTKEYDEVICE_FILE=""
 	done
 fi
 
 # clear existing usplash text and status messages
-[ $USPLASH -eq $TRUE ] && msg STATUS "                               " && msg CLEAR ""
+[ \$USPLASH -eq \$TRUE ] && msg STATUS "                               " && msg CLEAR ""
 
-if [ $OPENED -eq $TRUE ]; then
-	/bin/dd if=$DECRYPTKEYDEVICE_FILE bs=$DECRYPTKEYDEVICE_BLOCKSIZE skip=$DECRYPTKEYDEVICE_SKIPBLOCKS count=$DECRYPTKEYDEVICE_READBLOCKS 2>/dev/null
-	if [ $? -eq 0 ] ; then
-		dbg "Reading key from '$DECRYPTKEYDEVICE_FILE' ..."
+if [ \$OPENED -eq \$TRUE ]; then
+	/bin/dd if=\$DECRYPTKEYDEVICE_FILE bs=\$DECRYPTKEYDEVICE_BLOCKSIZE skip=\$DECRYPTKEYDEVICE_SKIPBLOCKS count=\$DECRYPTKEYDEVICE_READBLOCKS 2>/dev/null
+	if [ \$? -eq 0 ] ; then
+		dbg "Reading key from '\$DECRYPTKEYDEVICE_FILE' ..."
 	else
-		dbg "FAILED Reading key from '$DECRYPTKEYDEVICE_FILE' ..."
-		OPENED=$FALSE
+		dbg "FAILED Reading key from '\$DECRYPTKEYDEVICE_FILE' ..."
+		OPENED=\$FALSE
 	fi
 fi
 
-if [ $OPENED -ne $TRUE ]; then
+if [ \$OPENED -ne \$TRUE ]; then
 	msg "FAILED to find suitable Key device. Plug in now and press enter, or"
 	readpass "Enter passphrase: "
 	msg " "
 else
-	msg "Success loading key from '$DECRYPTKEYDEVICE_FILE'"
+	msg "Success loading key from '\$DECRYPTKEYDEVICE_FILE'"
 fi
 
-[ $USPLASH -eq $TRUE ] && /sbin/usplash_write "VERBOSE default"
+[ \$USPLASH -eq \$TRUE ] && /sbin/usplash_write "VERBOSE default"
 EOF
 chmod +x /etc/decryptkeydevice/decryptkeydevice_keyscript.sh
 
@@ -292,8 +292,8 @@ cat <<EOF >/etc/initramfs-tools/hooks/decryptkeydevice.hook
 # copy decryptkeydevice files to initramfs
 #
 
-mkdir -p $DESTDIR/etc/
-cp -rp /etc/decryptkeydevice $DESTDIR/etc/
+mkdir -p \$DESTDIR/etc/
+cp -rp /etc/decryptkeydevice \$DESTDIR/etc/
 EOF
 chmod +x /etc/initramfs-tools/hooks/decryptkeydevice.hook
 
