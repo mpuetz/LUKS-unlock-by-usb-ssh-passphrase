@@ -74,7 +74,7 @@ fi
 
 morecryptdevices="0"
 		# adding the key to the device
-		if [ $devuuid == "/dev/*"]
+		if [ $devuuid == "/dev/*" ]
 			then
 			devuuid=${devuuid##/dev/}
 		fi
