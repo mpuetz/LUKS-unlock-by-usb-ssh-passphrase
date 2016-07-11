@@ -12,7 +12,7 @@ exactly what I did.
 
 This Script was tested on Ubuntu Server 14.04. I am not responsible for any changes you make to your system. Continue with caution and ensure
 to have an initramfs-backup you can use to boot if something strange happens.
-The script works for me when having ONE device to unlock. If you need another one, you have to add the key manually using the way described in the tutorial for now.
+The script works for me when having one LVM to unlock. This script also works with RAID 1.
 
 This script uses dropbear. For detailed instructions how to set up dropbear, please use the following article: 
 https://www.thomas-krenn.com/de/wiki/Voll-verschl%C3%BCsseltes-System_via_SSH_freischalten
