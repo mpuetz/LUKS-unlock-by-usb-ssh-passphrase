@@ -1,17 +1,24 @@
 # LUKS-unlock-by-usb-ssh-passphrase
 a hook-script for ubuntu 14.04 to unlock a LUKS-drive at boot, using ssh, an usb-drive or passphrase
-This script is based on the LUKS-tripple-unlock script (https://github.com/chadoe/luks-triple-unlock) by Martin van Beurden, and on the tutorial
-Entschlüsseln mit einem USB-Stick (https://wiki.ubuntuusers.de/System_verschl%C3%BCsseln/Entschl%C3%BCsseln_mit_einem_USB-Schl%C3%BCssel/ ),
-Revision from 14. Juni 2016 08:32 last edited by noisefloor.
+
+This script is based on the LUKS-tripple-unlock script (https://github.com/chadoe/luks-triple-unlock) by Martin van Beurden, 
+
+on the tutorial Entschlüsseln mit einem USB-Stick (https://wiki.ubuntuusers.de/System_verschl%C3%BCsseln/Entschl%C3%BCsseln_mit_einem_USB-Schl%C3%BCssel/ ),
+Revision from 14. Juni 2016 08:32 last edited by noisefloor 
+
+and decryptkeydevice by Franco_bez (https://ubuntuusers.de/user/franco_bez/) as found at (https://wiki.ubuntuusers.de/System_verschl%C3%BCsseln/Entschl%C3%BCsseln_mit_einem_USB-Schl%C3%BCssel/#Anlegen-der-noetigen-Konfigurationsdateien), published under CC BY-NC-SA 2.0 DE (http://creativecommons.org/licenses/by-nc-sa/2.0/de/deed.de).
+
 All credits and rights for these scripts belong to them.
+
 I made this script beecause I used an usb-drive to unlock my server. Because i wanted to be able to remotely reboot the server if necessary,
 I had to let the usb-drive plugged into the server, which makes any encryption more or less useless. Because of that I began searching
 for other ways to unlock the serverand found the script i metnioned above, which was very similar to the script I already used for unlocking.
-After having read both of them it was clear they have got the same roots, so I thought it schould be possible to combine them, which is 
+After having read both of them it was clear they have got the same roots, so I thought it schould be possible to combine them, which is
 exactly what I did.
 
-This Script was tested on Ubuntu Server 14.04. I am not responsible for any changes you make to your system. Continue with caution and ensure
-to have an initramfs-backup you can use to boot if something strange happens.
+
+This Script was tested on Ubuntu Server 14.04. I am not responsible for any changes you make to your system. Continue with caution and ensure to have an initramfs-backup you can use to boot if something strange happens.
+
 The script works for me when having one LVM to unlock. This script also works with RAID 1.
 
 This script uses dropbear. For detailed instructions how to set up dropbear, please use the following article: 
