@@ -47,6 +47,7 @@ if [ $prepared == "y" ]
 						echo "Great! Continuing"
 				else
 						okay="0"
+				fi
 			done
                 if [ "$devuuid" == "" ] || [ "$blocksize" == "" ] || [ "$sectorstart" == "" ] || [ "$sectorend" == "" ]
                         then
@@ -355,7 +356,7 @@ dd if=/dev/urandom of=/dev/$devuuid bs=$blocksize seek=$sectorstart count=$write
 dd if=/dev/$devuuid bs=$blocksize skip=$skipblocks count=$readblocks > /tmp/tempKeyFile.bin
 
 another="0"
-While [ $another == "0" ]
+while [ $another == "0" ]
 do
 echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
 read devicename
