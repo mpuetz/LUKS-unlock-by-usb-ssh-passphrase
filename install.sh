@@ -65,6 +65,61 @@ else
                 exit 255
 fi
 
+# adding the key to the device
+if [ $devuuid == "/dev/*"]
+	then
+		devuuid=${devuuid##/dev/}
+fi
+
+if [ $devuuid == "*/" ]
+	then
+		devuuid=${devuuid%/}
+fi
+writeblocks=$(( firstpart - 1))
+dd if=/dev/urandom of=/dev/$devuuid bs=$blocksize seek=$sectorstart count=$writeblocks && echo "creating the key was successful!"
+
+# create a file from the key for adding the key to LUKSsetup
+dd if=/dev/$devuuid bs=$blocksize skip=$skipblocks count=$readblocks > /tmp/tempKeyFile.bin
+
+another="0"
+while [ $another == "0" ]
+do
+echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
+read devicename
+cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
+#echo "Do you want to add the key to another disk? (y=yes, n=no)"
+#read anotheranswer
+#if [ $anotheranswer == "n"]
+#	then
+		another="1"
+#fi
+done
+rm -f /tmp/tempKeyFile.bin
+
+#add the script to crypttab
+echo "Getting first cryptodisk in /etc/crypttab"
+lowestlinenr=9999
+for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID); do
+    linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
+    echo "Found $diskid on line $linenr"
+    if [ $linenr -lt $lowestlinenr ]; then
+#        if [ $diskid == $devicename ]; then
+		cryptUUID=$diskid
+#        fi
+        lowestlinenr=$linenr
+    fi
+done
+if [ -z "$cryptUUID" ]; then
+    echo "Unable to find a cryptodisk to use, exiting."
+    exit 1
+fi
+echo "Using cryptodisk $cryptUUID"
+#remove any previous keyscript
+sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
+#add our keyscript
+sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
+
+
 #Check if the folder for the script and config-file already exists and otherwise creating the folder. 
 if [ -d /etc/decryptkeydevice/ ]
 	then
@@ -338,61 +393,6 @@ mkdir -p \$DESTDIR/etc/
 cp -rp /etc/decryptkeydevice \$DESTDIR/etc/
 EOF
 chmod +x /etc/initramfs-tools/hooks/decryptkeydevice.hook
-
-# adding the key to the device
-if [ $devuuid == "/dev/*"]
-	then
-		devuuid=${devuuid##/dev/}
-fi
-
-if [ $devuuid == "*/" ]
-	then
-		devuuid=${devuuid%/}
-fi
-writeblocks=$(( firstpart - 1))
-dd if=/dev/urandom of=/dev/$devuuid bs=$blocksize seek=$sectorstart count=$writeblocks && echo "creating the key was successful!"
-
-# create a file from the key for adding the key to LUKSsetup
-dd if=/dev/$devuuid bs=$blocksize skip=$skipblocks count=$readblocks > /tmp/tempKeyFile.bin
-
-another="0"
-while [ $another == "0" ]
-do
-echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
-read devicename
-cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
-#echo "Do you want to add the key to another disk? (y=yes, n=no)"
-#read anotheranswer
-#if [ $anotheranswer == "n"]
-#	then
-		another="1"
-#fi
-done
-rm -f /tmp/tempKeyFile.bin
-
-#add the script to crypttab
-echo "Getting first cryptodisk in /etc/crypttab"
-lowestlinenr=9999
-for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID); do
-    linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
-    echo "Found $diskid on line $linenr"
-    if [ $linenr -lt $lowestlinenr ]; then
-#        if [ $diskid == $devicename ]; then
-		cryptUUID=$diskid
-#        fi
-        lowestlinenr=$linenr
-    fi
-done
-if [ -z "$cryptUUID" ]; then
-    echo "Unable to find a cryptodisk to use, exiting."
-    exit 1
-fi
-echo "Using cryptodisk $cryptUUID"
-#remove any previous keyscript
-sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
-#add our keyscript
-sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
-
 
 #Dropbear ssh unlock
 apt-get install -y dropbear initramfs-tools busybox
