@@ -65,25 +65,23 @@ if [ $prepared == "y" ]
         readblocks=$(( $sectorend - $sectorstart ))
 elif [ $prepared == "n" ]
         then
-                echo "well, then do that now ;)"
-                exit 0
+        echo "well, then do that now ;)"
+        exit 0
 else
-                echo "Aborted"
-                exit 255
+        echo "Aborted"
+        exit 255
 fi
 
 morecryptdevices="0"
-while [ $morecryptdevices == "0" ]
-do
-# adding the key to the device
-if [ $devuuid == "/dev/*"]
+		# adding the key to the device
+if [ $devuuid == "/dev/*" ]
 	then
-		devuuid=${devuuid##/dev/}
+	devuuid=${devuuid##/dev/}
 fi
 
 if [ $devuuid == "*/" ]
 	then
-		devuuid=${devuuid%/}
+	devuuid=${devuuid%/}
 fi
 writeblocks=$(( firstpart - 1))
 dd if=/dev/urandom of=/dev/$devuuid bs=$blocksize seek=$sectorstart count=$writeblocks && echo "creating the key was successful!"
@@ -93,24 +91,22 @@ dd if=/dev/$devuuid bs=$blocksize skip=$skipblocks count=$readblocks > /tmp/temp
 
 echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
 read devicename
-cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
+cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin && echo "added the key to the LVM"
 
 #add the script to crypttab
 echo "Getting first cryptodisk in /etc/crypttab"
 lowestlinenr=9999
 for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID $devicename); do
-    linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
-    echo "Found $diskid on line $linenr"
-    if [ $linenr -lt $lowestlinenr ]; then
-#        if [ $diskid == $devicename ]; then
+	linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
+	echo "Found $diskid on line $linenr"
+	if [ $linenr -lt $lowestlinenr ]; then
 		cryptUUID=$diskid
-#        fi
-        lowestlinenr=$linenr
-    fi
+		lowestlinenr=$linenr
+	fi
 done
 if [ -z "$cryptUUID" ]; then
-    echo "Unable to find a cryptodisk to use, exiting."
-    exit 1
+	echo "Unable to find a cryptodisk to use, exiting."
+	exit 1
 fi
 echo "Using cryptodisk $cryptUUID"
 #remove any previous keyscript
@@ -118,40 +114,36 @@ sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
 #add our keyscript
 sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
 
-morecryptdevices="0"
 while [ $morecryptdevices == "1" ]
-do
-echo "do you want to add the key to more devices? 0=no, 1=yes"
-read morecryptdevices
-if [ $morecryptdevices == "1" ]
-then
-echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
-read devicename
-cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
+	do
+	echo "do you want to add the key to more devices? 0=no, 1=yes"
+	read morecryptdevices
+	if [ $morecryptdevices == "1" ]
+		then
+		echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
+		read devicename
+		cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin  && echo "added the key to the LVM"
 
-#add the script to crypttab
-echo "Getting first cryptodisk in /etc/crypttab"
-lowestlinenr=9999
-for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID $devicename); do
-    linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
-    echo "Found $diskid on line $linenr"
-    if [ $linenr -lt $lowestlinenr ]; then
-#        if [ $diskid == $devicename ]; then
-		cryptUUID=$diskid
-#        fi
-        lowestlinenr=$linenr
-    fi
-done
-if [ -z "$cryptUUID" ]; then
-    echo "Unable to find a cryptodisk to use, exiting."
-    exit 1
-fi
-echo "Using cryptodisk $cryptUUID"
-#remove any previous keyscript
-sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
-#add our keyscript
-sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
-fi
+		#add the script to crypttab
+		echo "Getting first cryptodisk in /etc/crypttab"
+		lowestlinenr=9999
+		for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID $devicename); do
+		linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
+		echo "Found $diskid on line $linenr"
+    		if [ $linenr -lt $lowestlinenr ]; then
+			cryptUUID=$diskid
+		        lowestlinenr=$linenr
+		fi
+		if [ -z "$cryptUUID" ]; then
+			echo "Unable to find a cryptodisk to use, exiting."
+			exit 1
+		fi
+		echo "Using cryptodisk $cryptUUID"
+		#remove any previous keyscript
+		sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
+		#add our keyscript
+		sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
+	fi
 done
 
 rm -f /tmp/tempKeyFile.bin
