@@ -91,7 +91,7 @@ cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
 #add the script to crypttab
 echo "Getting first cryptodisk in /etc/crypttab"
 lowestlinenr=9999
-for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID devicename); do
+for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID $devicename); do
     linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
     echo "Found $diskid on line $linenr"
     if [ $linenr -lt $lowestlinenr ]; then
@@ -125,7 +125,7 @@ cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
 #add the script to crypttab
 echo "Getting first cryptodisk in /etc/crypttab"
 lowestlinenr=9999
-for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID devicename); do
+for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID $devicename); do
     linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
     echo "Found $diskid on line $linenr"
     if [ $linenr -lt $lowestlinenr ]; then
