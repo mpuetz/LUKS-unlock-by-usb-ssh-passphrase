@@ -18,8 +18,8 @@ This script uses dropbear. For detailed instructions how to set up dropbear, ple
 https://www.thomas-krenn.com/de/wiki/Voll-verschl%C3%BCsseltes-System_via_SSH_freischalten
 
 How to install this file:
-1. get both of the scripts to your server using wget or git clone.
-2. run the nf.sh installation script.
+1. get both of the scripts to your server using git clone.
+2. run the install.sh installation script.
 3. If you want to add the possibility, to login to dropbear using key-files, please do this now and after that "update-initramfs -c -k 'uname -r'"
 
 How to use this file:
