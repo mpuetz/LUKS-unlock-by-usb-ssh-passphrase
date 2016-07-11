@@ -1,7 +1,7 @@
 #! /bin/bash
 # getting the needed informations about the device.
 echo "Please use 'sudo fdisk -l' and write down the name of the device you want to decrypt and the name of your usb-drive (sda; sdb...)."
-echo "You will also need the UUID of your usb-drive (you can get it by executing 'sudo ls -l /dev/disk/by-id'), the blocksize and the beginning of the first partiton (you can get it by executing 'sudo fdisk -l /dev/name-of-your-usb-drive'."
+echo "You will also need the UUID of your usb-drive (you can get it by executing 'sudo ls -l /dev/disk/by-id'), the blocksize and the beginning of the first partiton (you can get it by executing 'sudo fdisk -l /dev/name-of-your-usb-drive')."
 echo "Have you written down all the informations?"
 echo "y=yes, n=no"
 read -p "prepared?: " prepared
@@ -25,14 +25,14 @@ if [ $prepared == "y" ]
                 echo "please enter the sector you want the key to end at"
                 read sectorend
 		okay="0"
-		While [ $okay -eq 0 ]
+		while [ $okay -eq 0 ]
 			do
 				keysize=$(( ( $sectorend - $sectorstart ) * $blocksize ))
 				echo "your key will be "$keysize" bytes. Is that okay?"
-				Echo "0=no, 1=yes"
-				Read okay
-				If [ $okay == "0" ]
-					Then
+				echo "0=no, 1=yes"
+				read okay
+				if [ $okay == "0" ]
+					then
 						echo "Please enter the sector you want the key to start at."
 						read sectorstart
 						while [ $sectorstart -le "0" ]
@@ -42,10 +42,10 @@ if [ $prepared == "y" ]
 						done
 						echo "Please enter the sector you want your key to end at."
 						read sectorend
-				Elif [ $okay == "1" ]
-					Then
-						Echo "Great! Continuing"
-				Else
+				elif [ $okay == "1" ]
+					then
+						echo "Great! Continuing"
+				else
 						okay="0"
 			done
                 if [ "$devuuid" == "" ] || [ "$blocksize" == "" ] || [ "$sectorstart" == "" ] || [ "$sectorend" == "" ]
@@ -69,7 +69,6 @@ if [ -d /etc/decryptkeydevice/ ]
 	then
 		echo "folder already exists"
 else
-	then
 		mkdir /etc/decryptkeydevice/ && echo "folder successfully created!"
 fi
 
@@ -377,9 +376,9 @@ for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID); do
     linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
     echo "Found $diskid on line $linenr"
     if [ $linenr -lt $lowestlinenr ]; then
-        if [ $diskid == $devicename ]; then
+#        if [ $diskid == $devicename ]; then
 		cryptUUID=$diskid
-        fi
+#        fi
         lowestlinenr=$linenr
     fi
 done
@@ -398,14 +397,14 @@ sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_k
 apt-get install -y dropbear initramfs-tools busybox
 
 #Add network drivers
-ifaces=$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print $2}'|sed 's/:$//g')
-for iface in $ifaces; do
-    if [ -f /sys/class/net/$iface/device/uevent ]; then
-        echo "Found interface $iface"
-		ifacemod="$(grep DRIVER /sys/class/net/$iface/device/uevent |awk -F'=' '{print $2}')"
-		grep -q "^$ifacemod$" /etc/initramfs-tools/modules || echo "$ifacemod" >> /etc/initramfs-tools/modules
-    fi
-done
+#ifaces=$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print $2}'|sed 's/:$//g')
+#for iface in $ifaces; do
+#    if [ -f /sys/class/net/$iface/device/uevent ]; then
+#        echo "Found interface $iface"
+#		ifacemod="$(grep DRIVER /sys/class/net/$iface/device/uevent |awk -F'=' '{print $2}')"
+#		grep -q "^$ifacemod$" /etc/initramfs-tools/modules || echo "$ifacemod" >> /etc/initramfs-tools/modules
+#    fi
+#done
 
 #explicitely enable dropbear (=default behavior), won't touch existing setting if any
 (grep -qs '^DROPBEAR=' /etc/initramfs-tools/conf.d/dropbear || \
@@ -420,119 +419,18 @@ done
 #disallow password logins (=non-default behavior), set port to 22 (=default behavior), won't touch existing setting if any
 (grep -qs 'PKGOPTION_dropbear_OPTION=' /etc/initramfs-tools/conf.d/dropbear || \
  grep 'PKGOPTION_dropbear_OPTION=' /etc/initramfs-tools/initramfs.conf || \
- echo 'export PKGOPTION_dropbear_OPTION="-s -p 22"' \
+ echo 'PKGOPTION_dropbear_OPTION="-s -p 22"' \
 ) >> /etc/initramfs-tools/conf.d/dropbear
 
 #Write initramfs scripts
 #
-#Network won't be reconfigured after dropbear has initialized it in initramfs, reset it
-#
-cat <<EOF >/etc/initramfs-tools/scripts/local-bottom/reset_network
-#!/bin/sh
-#
-# Initramfs script to reset all network devices after initramfs is done.
-#
-# Author: Martin van Beurden, https://martinvanbeurden.nl
-#
-# Usage:
-# - Copy this script to /etc/initramfs-tools/scripts/local-bottom/reset_network
-# - chmod +x /etc/initramfs-tools/scripts/local-bottom/reset_network
-# - update-initramfs -u -k -all
-#
-PREREQ=""
-prereqs()
-{
-    echo "\$PREREQ"
-}
-case \$1 in
-    prereqs)
-        prereqs
-        exit 0
-    ;;
-esac
-#
-# Begin real processing
-#
-ifaces=\$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print \$2}'|sed 's/:\$//g')
-for iface in \$ifaces; do
-    echo "Flushing network interface \$iface"
-    ip addr flush \$iface
-done
-EOF
-
-chmod +x /etc/initramfs-tools/scripts/local-bottom/reset_network
-
-#
-#Just an extra, kills the dropbear connecton when done so the client 
-#knows immediately it has been disconnected.
-#
-cat << EOF>/etc/initramfs-tools/scripts/local-bottom/kill_dropbear_connections
-#!/bin/sh
-
-# Initramfs script to kill all dropbear clientconnections after initramfs is done.
-#
-# Adopted from openwrt
-# Author: Martin van Beurden, https://martinvanbeurden.nl
-#
-# Usage:
-# - Copy this script to /etc/initramfs-tools/scripts/local-bottom/kill_dropbear_connections
-# - chmod +x /etc/initramfs-tools/scripts/local-bottom/kill_dropbear_connections
-# - update-initramfs -u -k -all
-#
-PREREQ=""
-prereqs()
-{
-    echo "\$PREREQ"
-}
-case \$1 in
-    prereqs)
-        prereqs
-        exit 0
-    ;;
-esac
-#
-# Begin real processing
-#
-NAME=dropbear
-PROG=/sbin/dropbear
-# get all server pids that should be ignored
-ignore=""
-for server in \`cat /var/run/\${NAME}*.pid\`
-do
-    ignore="\${ignore} \${server}"
-done
-# get all running pids and kill client connections
-for pid in \`pidof "\${NAME}"\`
-do
-    # check if correct program, otherwise process next pid
-    grep -F -q -e "\${PROG}" "/proc/\${pid}/cmdline" || {
-        continue
-    }
-    # check if pid should be ignored (servers)
-    skip=0
-    for server in \${ignore}
-    do
-        if [ "\${pid}" == "\${server}" ]
-        then
-            skip=1
-            break
-        fi
-    done
-    [ "\${skip}" -ne 0 ] && continue
-    # kill process
-    echo "\$0: Killing ${pid}..."
-    kill \${pid}
-done
-EOF
-chmod +x /etc/initramfs-tools/scripts/local-bottom/kill_dropbear_connections
-
 cat << DONE > /etc/initramfs-tools/hooks/crypt_unlock.sh
 #!/bin/sh
  
 PREREQ="dropbear"
  
 prereqs() {
-    echo "\$PREREQ"
+    echo "$PREREQ"
 }
  
 case "\$1" in
@@ -589,13 +487,6 @@ fi
 DONE
 chmod +x /etc/initramfs-tools/hooks/crypt_unlock.sh
 
-
-update-initramfs -u -k $(uname -r)
-
-echo "************************************************************************"
-echo "DONE!"
-#! /bin/bash
-
 #Write initramfs scripts
 #
 #Network won't be reconfigured after dropbear has initialized it in initramfs, reset it
@@ -615,7 +506,7 @@ cat <<EOF >/etc/initramfs-tools/scripts/local-bottom/reset_network
 PREREQ=""
 prereqs()
 {
-    echo "\$PREREQ"
+    echo "$PREREQ"
 }
 case \$1 in
     prereqs)
