@@ -1,6 +1,8 @@
 # LUKS-unlock-by-usb-ssh-passphrase
 a hook-script for ubuntu 14.04 to unlock a LUKS-drive at boot, using ssh, an usb-drive or passphrase
 
+        CAUTION! This script is NOT working with ubuntu 16.04 at the moment!
+
 This script is based on the LUKS-tripple-unlock script (https://github.com/chadoe/luks-triple-unlock) by Martin van Beurden, 
 
 on the tutorial Entschlüsseln mit einem USB-Stick (https://wiki.ubuntuusers.de/System_verschl%C3%BCsseln/Entschl%C3%BCsseln_mit_einem_USB-Schl%C3%BCssel/ ),
