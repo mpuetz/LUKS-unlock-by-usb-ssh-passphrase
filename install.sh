@@ -1,4 +1,5 @@
 #! /bin/bash
+# This script is based on the scripts luks-triple-unlock from chadoe (https://github.com/chadoe/luks-triple-unlock) and decryptkeydevice
 # getting the needed informations about the device.
 echo "Please use 'sudo fdisk -l' and write down the name of the device you want to decrypt and the name of your usb-drive (sda; sdb...)."
 echo "You will also need the UUID of your usb-drive (you can get it by executing 'sudo ls -l /dev/disk/by-id'), the blocksize and the beginning of the first partiton (you can get it by executing 'sudo fdisk -l /dev/name-of-your-usb-drive')."
@@ -111,7 +112,7 @@ sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
 #add our keyscript
 sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
 
-morecryptdevices="1"
+morecryptdevices="0"
 while [ $morecryptdevices == "1" ]
 do
 echo "do you want to add the key to more devices? 0=no, 1=yes"
