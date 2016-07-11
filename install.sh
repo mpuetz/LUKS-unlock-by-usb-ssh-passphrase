@@ -397,16 +397,6 @@ sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_k
 #Dropbear ssh unlock
 apt-get install -y dropbear initramfs-tools busybox
 
-#Add network drivers
-#ifaces=$(ip addr|egrep "^[0-9]*: "|egrep -v "^[0-9]*: lo:"|awk '{print $2}'|sed 's/:$//g')
-#for iface in $ifaces; do
-#    if [ -f /sys/class/net/$iface/device/uevent ]; then
-#        echo "Found interface $iface"
-#		ifacemod="$(grep DRIVER /sys/class/net/$iface/device/uevent |awk -F'=' '{print $2}')"
-#		grep -q "^$ifacemod$" /etc/initramfs-tools/modules || echo "$ifacemod" >> /etc/initramfs-tools/modules
-#    fi
-#done
-
 #explicitely enable dropbear (=default behavior), won't touch existing setting if any
 (grep -qs '^DROPBEAR=' /etc/initramfs-tools/conf.d/dropbear || \
  grep '^DROPBEAR=' /etc/initramfs-tools/initramfs.conf || \
