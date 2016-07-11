@@ -1,6 +1,6 @@
 #! /bin/bash
 # This script is based on the scripts luks-triple-unlock from chadoe (aka Martin van Beurden as found at https://github.com/chadoe/luks-triple-unlock)
-# and decryptkeydevice by Franco_bez (https://ubuntuusers.de/user/franco_bez/) as found at (https://wiki.ubuntuusers.de/System_verschl%C3%BCsseln/Entschl%C3%BCsseln_mit_einem_USB-Schl%C3%BCssel/#Anlegen-der-noetigen-Konfigurationsdateien)
+# and decryptkeydevice by Franco_bez (https://ubuntuusers.de/user/franco_bez/) as found at (https://wiki.ubuntuusers.de/System_verschl%C3%BCsseln/Entschl%C3%BCsseln_mit_einem_USB-Schl%C3%BCssel/#Anlegen-der-noetigen-Konfigurationsdateien), published under CC BY-NC-SA 2.0 DE (http://creativecommons.org/licenses/by-nc-sa/2.0/de/deed.de)
 # The scripts were adapted and combined by mpuetz (Michael Pütz, https://github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase) to 
 # get the best from both worlds and having a fully automated script doing all the work for you.
 # This script may be used under the MIT-License (https://github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase/blob/master/LICENSE).
