@@ -3,8 +3,8 @@
 # and decryptkeydevice by Franco_bez (https://ubuntuusers.de/user/franco_bez/) as found at (https://wiki.ubuntuusers.de/System_verschl%C3%BCsseln/Entschl%C3%BCsseln_mit_einem_USB-Schl%C3%BCssel/#Anlegen-der-noetigen-Konfigurationsdateien), published under CC BY-NC-SA 2.0 DE (http://creativecommons.org/licenses/by-nc-sa/2.0/de/deed.de)
 # The scripts were adapted and combined by mpuetz (Michael Pütz, https://github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase) to 
 # get the best from both worlds and having a fully automated script doing all the work for you.
-# This script may be used under the MIT-License (https://github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase/blob/master/LICENSE).
-
+# This script may be used under CC BY-NC-SA 2.0 DE (https://github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase/blob/master/LICENSE), in short (https://creativecommons.org/licenses/by-nc-sa/2.0/de/deed.de).
+#
 # getting the needed informations about the device.
 echo "Please use 'sudo fdisk -l' and write down the name of the device you want to decrypt and the name of your usb-drive (sda; sdb...)."
 echo "You will also need the UUID of your usb-drive (you can get it by executing 'sudo ls -l /dev/disk/by-id'), the blocksize and the beginning of the first partiton (you can get it by executing 'sudo fdisk -l /dev/name-of-your-usb-drive')."
