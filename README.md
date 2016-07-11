@@ -18,15 +18,15 @@ This script uses dropbear. For detailed instructions how to set up dropbear, ple
 https://www.thomas-krenn.com/de/wiki/Voll-verschl%C3%BCsseltes-System_via_SSH_freischalten
 
 How to install this file:
-1. get both of the scripts to your server using git clone.
-2. run the install.sh installation script.
-3. If you want to add the possibility, to login to dropbear using key-files, please do this now and after that "update-initramfs -c -k 'uname -r'"
+- get both of the scripts to your server using git clone.
+- run the install.sh installation script.
+- If you want to add the possibility, to login to dropbear using key-files, please do this now and after that "update-initramfs -c -k 'uname -r'"
 
 How to use this file:
-1. Using the passphrase:
+- Using the passphrase:
 You can just type in the passphrase using a keyboard connected to the server.
-2. Using SSH:
+- Using SSH:
 After loging in to the server, you get asked for the passphrase. If you enter it correctly, the device will be unlockend.
-3. Using an usb-drive:
+- Using an usb-drive:
 Using this method, you create a key-file on your usb-drive, but instead of just creating a normal file, it will write the key at the beginning
 of the drive. So there is nothing blowing up your cover for your encrypted harddrive.
