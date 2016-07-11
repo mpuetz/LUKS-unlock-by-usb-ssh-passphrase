@@ -65,6 +65,9 @@ else
                 exit 255
 fi
 
+morecryptdevices="0"
+while [ $morecryptdevices == "0" ]
+do
 # adding the key to the device
 if [ $devuuid == "/dev/*"]
 	then
@@ -81,25 +84,14 @@ dd if=/dev/urandom of=/dev/$devuuid bs=$blocksize seek=$sectorstart count=$write
 # create a file from the key for adding the key to LUKSsetup
 dd if=/dev/$devuuid bs=$blocksize skip=$skipblocks count=$readblocks > /tmp/tempKeyFile.bin
 
-another="0"
-while [ $another == "0" ]
-do
 echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
 read devicename
 cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
-#echo "Do you want to add the key to another disk? (y=yes, n=no)"
-#read anotheranswer
-#if [ $anotheranswer == "n"]
-#	then
-		another="1"
-#fi
-done
-rm -f /tmp/tempKeyFile.bin
 
 #add the script to crypttab
 echo "Getting first cryptodisk in /etc/crypttab"
 lowestlinenr=9999
-for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID); do
+for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID devicename); do
     linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
     echo "Found $diskid on line $linenr"
     if [ $linenr -lt $lowestlinenr ]; then
@@ -119,6 +111,43 @@ sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
 #add our keyscript
 sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
 
+morecryptdevices="1"
+while [ $morecryptdevices == "1" ]
+do
+echo "do you want to add the key to more devices? 0=no, 1=yes"
+read morecryptdevices
+if [ $morecryptdevices == "1" ]
+then
+echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
+read devicename
+cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin
+
+#add the script to crypttab
+echo "Getting first cryptodisk in /etc/crypttab"
+lowestlinenr=9999
+for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID devicename); do
+    linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
+    echo "Found $diskid on line $linenr"
+    if [ $linenr -lt $lowestlinenr ]; then
+#        if [ $diskid == $devicename ]; then
+		cryptUUID=$diskid
+#        fi
+        lowestlinenr=$linenr
+    fi
+done
+if [ -z "$cryptUUID" ]; then
+    echo "Unable to find a cryptodisk to use, exiting."
+    exit 1
+fi
+echo "Using cryptodisk $cryptUUID"
+#remove any previous keyscript
+sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
+#add our keyscript
+sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
+fi
+done
+
+rm -f /tmp/tempKeyFile.bin
 
 #Check if the folder for the script and config-file already exists and otherwise creating the folder. 
 if [ -d /etc/decryptkeydevice/ ]
