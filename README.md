@@ -1,5 +1,7 @@
 # LUKS-unlock-by-usb-ssh-passphrase
-a hook-script for ubuntu 14.04 to unlock a LUKS-drive at boot, using ssh, an usb-drive or passphrase
+a hook-script for ubuntu server 14.04 to unlock a LUKS-drive at boot, using ssh, an usb-drive or passphrase
+
+        CAUTION! This script is NOT tested with ubuntu server 16.04 at the moment! Proceed on your own risk!
 
 This script is based on the LUKS-tripple-unlock script (https://github.com/chadoe/luks-triple-unlock) by Martin van Beurden, 
 
@@ -25,9 +27,14 @@ This script uses dropbear. For detailed instructions how to set up dropbear, ple
 https://www.thomas-krenn.com/de/wiki/Voll-verschl%C3%BCsseltes-System_via_SSH_freischalten
 
 How to install this file:
+- connect the usb-drive to the machine
+- on your machine (or via ssh) run "sudo ls -l /dev/disk/by-id" and watch out for your usb-drive.
+- Write down the id of your usb-drive (usb-XXXX-0:0) and the label (../../sdX  WITHOUT any partiton number (NOT sdX1))
+- run "sudo fdisk -l /dev/sdX" and replace sdX with the label you have written down before. Write down the blocksize (like 512 bytes), you just need the number! Please also write down the beginning of the first partition (sdX1).
+- write down the label of the encrypted partition. If you don't know which device this partition is on, run "sudo blkid | grep *". This will show you the boot-partiton. Because you are using a script to unlock your machine while booting this will mostly get the right device. Please write the label down WITHOUT any partition-numbers (just /dev/sdX). 
 - get both of the scripts to your server using git clone.
 - run the install.sh installation script.
-- If you want to add the possibility, to login to dropbear using key-files, please do this now and after that "update-initramfs -c -k 'uname -r'"
+- If you want to add the possibility, to login to dropbear using key-files, please do this now and after that run "sudo update-initramfs -c -k 'uname -r'"
 
 How to use this file:
 - Using the passphrase:
@@ -37,3 +44,11 @@ After loging in to the server, you get asked for the passphrase. If you enter it
 - Using an usb-drive:
 Using this method, you create a key-file on your usb-drive, but instead of just creating a normal file, it will write the key at the beginning
 of the drive. So there is nothing blowing up your cover for your encrypted harddrive.
+
+One last word concerning the License:
+unfortunately, here are two projects merged which are published under different Licenses. The install.sh-script from Martin van Beurden
+may be used under the MIT-License, whereas the script from Franco_be which is found at ubuntuusers.de has to be published under the 
+CC BY-NC-SA 2.0 DE by the forum-guidelines from ubuntuusers.de.
+So its a bit unclear which License to use. Because the MIT-License is pretty easy, whereas the CC-License is pretty restrictive it 
+seems to be the most logical decission to use this License for the scripts. I hope this is okay with everyone who contributed to the 
+scripts I used. If it does not, please feel free to contact me so we can decide how to go on.
