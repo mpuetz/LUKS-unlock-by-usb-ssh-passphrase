@@ -39,3 +39,11 @@ After loging in to the server, you get asked for the passphrase. If you enter it
 - Using an usb-drive:
 Using this method, you create a key-file on your usb-drive, but instead of just creating a normal file, it will write the key at the beginning
 of the drive. So there is nothing blowing up your cover for your encrypted harddrive.
+
+As for the License:
+unfortunately, here are two projects merged which are published under different Licenses. The install.sh-script from Martin van Beurden
+may be used under the MIT-License, whereas the script from Franco_be which is found at ubuntuusers.de has to be published under the 
+CC BY-NC-SA 2.0 DE by the forum-guidelines from ubuntuusers.de.
+So its a bit unclear which License to use. Because the MIT-License is pretty easy, whereas the CC-License is pretty restrictive it 
+seems to be the most logical decission to use this License for the scripts. I hope this is okay with everyone who contributed to the 
+scripts I used. If it does not, please feel free to contact me so we can decide how to go on.
