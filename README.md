@@ -32,7 +32,7 @@ How to install this file:
 - Write down the id of your usb-drive (usb-XXXX-0:0) and the label (../../sdX  WITHOUT any partiton number (NOT sdX1))
 - run "sudo fdisk -l /dev/sdX" and replace sdX with the label you have written down before. Write down the blocksize (like 512 bytes), you just need the number! Please also write down the beginning of the first partition (sdX1).
 - write down the label of the encrypted partition. If you don't know which device this partition is on, run "sudo blkid | grep *". This will show you the boot-partiton. Because you are using a script to unlock your machine while booting this will mostly get the right device. Please write the label down WITHOUT any partition-numbers (just /dev/sdX). 
-- get both of the scripts to your server using git clone.
+- get both of the scripts to your server using "wget https://codeload.github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase/legacy.zip/master && unzip master && cd mpuetz-LUKS-unlock-by-usb-ssh-passphrase-fce9afc && sudo chmod +x install.sh".
 - run the install.sh installation script.
 - If you want to add the possibility, to login to dropbear using key-files, please do this now and after that run "sudo update-initramfs -c -k 'uname -r'"
 
