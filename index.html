@@ -66,7 +66,7 @@ exactly what I did.</p>
 <li>Write down the id of your usb-drive (usb-XXXX-0:0) and the label (../../sdX  WITHOUT any partiton number (NOT sdX1))</li>
 <li>run "sudo fdisk -l /dev/sdX" and replace sdX with the label you have written down before. Write down the blocksize (like 512 bytes), you just need the number! Please also write down the beginning of the first partition (sdX1).</li>
 <li>write down the label of the encrypted partition. If you don't know which device this partition is on, run "sudo blkid | grep *". This will show you the boot-partiton. Because you are using a script to unlock your machine while booting this will mostly get the right device. Please write the label down WITHOUT any partition-numbers (just /dev/sdX). </li>
-<li>get both of the scripts to your server using git clone.</li>
+<li>get both of the scripts to your server using "wget <a href="https://codeload.github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase/legacy.zip/master">https://codeload.github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase/legacy.zip/master</a> &amp;&amp; unzip master &amp;&amp; cd mpuetz-LUKS-unlock-by-usb-ssh-passphrase-fce9afc &amp;&amp; sudo chmod +x install.sh".</li>
 <li>run the install.sh installation script.</li>
 <li>If you want to add the possibility, to login to dropbear using key-files, please do this now and after that run "sudo update-initramfs -c -k 'uname -r'"</li>
 </ul>
