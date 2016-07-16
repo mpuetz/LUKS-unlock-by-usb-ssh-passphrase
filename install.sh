@@ -18,18 +18,18 @@ if [ $prepared == "y" ]
                 read devuuid
                 echo "Please enter the usb uuid now (e.g. usb-XyzFlash_XYZDFGHIJK_XXYYZZ00AA-0:0   or   mmc-XXX_0x0AAABBBCCCDDD)"
                 read usbuuid
-                echo "Please enter the blocksize"
+                echo "Please enter the blocksize in Bytes (just the numbers)"
                 read blocksize
-                echo "Please enter the sector, the first partition starts at"
+                echo "Please enter the sector, the first partition starts at (just numbers)"
                 read firstpart
-                echo "please enter the sector you want the key to start at"
+                echo "please enter the sector you want the key to start at (just numbers)"
                 read sectorstart
                 while [ $sectorstart -le "0" ]
                         do
                                 echo "0 and less are not allowed as the start sector. Please enter another startsector."
                                 read sectorstart
                         done
-                echo "please enter the sector you want the key to end at"
+                echo "please enter the sector you want the key to end at (just numbers)"
                 read sectorend
 		okay="0"
 		# Checks if the user is happy with the informations he inserted.
@@ -41,14 +41,14 @@ if [ $prepared == "y" ]
 				read okay
 				if [ $okay == "0" ]
 					then
-						echo "Please enter the sector you want the key to start at."
+						echo "Please enter the sector you want the key to start at (just numbers)."
 						read sectorstart
 						while [ $sectorstart -le "0" ]
 							do
 							echo "0 and less are not valid startsectors. Please enter another."
 							read sectorstart
 						done
-						echo "Please enter the sector you want your key to end at."
+						echo "Please enter the sector you want your key to end at (just numbers)."
 						read sectorend
 				elif [ $okay == "1" ]
 					then
