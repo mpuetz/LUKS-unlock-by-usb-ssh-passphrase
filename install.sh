@@ -6,7 +6,7 @@
 # get the best from both worlds and having a fully automated script doing all the work for you.
 # This script may be used under CC BY-NC-SA 2.0 DE (https://github.com/mpuetz/LUKS-unlock-by-usb-ssh-passphrase/blob/master/LICENSE), in short (https://creativecommons.org/licenses/by-nc-sa/2.0/de/deed.de).
 #
-# getting the needed informations about the device.
+# getting the needed informations about the device:
 echo "Please use 'sudo fdisk -l' and write down the name of the device you want to decrypt and the name of your usb-drive (sda; sdb...)."
 echo "You will also need the UUID of your usb-drive (you can get it by executing 'sudo ls -l /dev/disk/by-id'), the blocksize and the beginning of the first partiton (you can get it by executing 'sudo fdisk -l /dev/name-of-your-usb-drive')."
 echo "Have you written down all the informations?"
@@ -14,7 +14,7 @@ echo "y=yes, n=no"
 read -p "prepared?: " prepared
 if [ $prepared == "y" ]
         then
-                echo "Please enter the usb disk-id now (sda, sdb, sdc... without the partition numbers!)"
+                echo "Please enter the usb disk-label now (sda, sdb, sdc... without the partition numbers!)"
                 read devuuid
                 echo "Please enter the usb uuid now (e.g. usb-XyzFlash_XYZDFGHIJK_XXYYZZ00AA-0:0   or   mmc-XXX_0x0AAABBBCCCDDD)"
                 read usbuuid
@@ -32,6 +32,7 @@ if [ $prepared == "y" ]
                 echo "please enter the sector you want the key to end at"
                 read sectorend
 		okay="0"
+		# Checks if the user is happy with the informations he inserted.
 		while [ $okay -eq 0 ]
 			do
 				keysize=$(( ( $sectorend - $sectorstart ) * $blocksize ))
@@ -72,8 +73,8 @@ else
         exit 255
 fi
 
-morecryptdevices="0"
-		# adding the key to the device
+# adding the key to the device
+# first checking if the device.label was entered in the correct format (without /dev/ and without an following / after sdX)
 if [ $devuuid == "/dev/*" ]
 	then
 	devuuid=${devuuid##/dev/}
@@ -84,11 +85,13 @@ if [ $devuuid == "*/" ]
 	devuuid=${devuuid%/}
 fi
 writeblocks=$(( firstpart - 1))
-dd if=/dev/urandom of=/dev/$devuuid bs=$blocksize seek=$sectorstart count=$writeblocks && echo "creating the key was successful!"
+# then we're writing random numbers to the sector between 
+dd if=/dev/urandom of=/dev/$devuuid bs=$blocksize seek=1 count=$writeblocks && echo "creating the key was successful!"
 
 # create a file from the key for adding the key to LUKSsetup
 dd if=/dev/$devuuid bs=$blocksize skip=$skipblocks count=$readblocks > /tmp/tempKeyFile.bin
 
+# adding the key-file to the LUKS-cryptsetup
 echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
 read devicename
 cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin && echo "added the key to the LVM"
@@ -113,39 +116,6 @@ echo "Using cryptodisk $cryptUUID"
 sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
 #add our keyscript
 sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
-
-while [ $morecryptdevices == "1" ]
-	do
-	echo "do you want to add the key to more devices? 0=no, 1=yes"
-	read morecryptdevices
-	if [ $morecryptdevices == "1" ]
-		then
-		echo "Please enter the name of the drive you want to unlock with the usb-key (e.g. /dev/sda9)"
-		read devicename
-		cryptsetup luksAddKey $devicename /tmp/tempKeyFile.bin  && echo "added the key to the LVM"
-
-		#add the script to crypttab
-		echo "Getting first cryptodisk in /etc/crypttab"
-		lowestlinenr=9999
-		for diskid in $(blkid -t TYPE=crypto_LUKS -o value -s UUID $devicename); do
-			linenr=$(awk 'match($0,v){print NR; exit}' v=$diskid /etc/crypttab)
-			echo "Found $diskid on line $linenr"
-    			if [ $linenr -lt $lowestlinenr ]; then
-				cryptUUID=$diskid
-		        	lowestlinenr=$linenr
-			fi
-		done
-		if [ -z "$cryptUUID" ]; then
-			echo "Unable to find a cryptodisk to use, exiting."
-			exit 1
-		fi
-		echo "Using cryptodisk $cryptUUID"
-		#remove any previous keyscript
-		sed -i "/$cryptUUID/ s/,keyscript=[^, \t]*//" /etc/crypttab
-		#add our keyscript
-		sed -i "/$cryptUUID/ s/\$/,keyscript=\/etc\/decryptkeydevice\/decryptkeydevice_keyscript.sh/" /etc/crypttab
-	fi
-done
 
 rm -f /tmp/tempKeyFile.bin
 
@@ -515,8 +485,6 @@ fi
 DONE
 chmod +x /etc/initramfs-tools/hooks/crypt_unlock.sh
 
-#Write initramfs scripts
-#
 #Network won't be reconfigured after dropbear has initialized it in initramfs, reset it
 #
 cat <<EOF >/etc/initramfs-tools/scripts/local-bottom/reset_network
