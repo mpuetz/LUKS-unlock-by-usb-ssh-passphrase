@@ -414,11 +414,11 @@ apt-get install -y dropbear initramfs-tools busybox
 
 #Private key of root needed to login to dropbear
 #Generate a key if none exists for convenience as this was done in older versions as well
-if [ ! -f /etc/initramfs-tools/root/.ssh/id_rsa ]; then
-    mkdir -p /etc/initramfs-tools/root/.ssh
-    ssh-keygen -t rsa -N '' -f /etc/initramfs-tools/root/.ssh/id_rsa
-    cat /etc/initramfs-tools/root/.ssh/id_rsa.pub >> /etc/initramfs-tools/root/.ssh/authorized_keys
-fi
+#if [ ! -f /etc/initramfs-tools/root/.ssh/id_rsa ]; then
+#    mkdir -p /etc/initramfs-tools/root/.ssh
+#    ssh-keygen -t rsa -N '' -f /etc/initramfs-tools/root/.ssh/id_rsa
+#    cat /etc/initramfs-tools/root/.ssh/id_rsa.pub >> /etc/initramfs-tools/root/.ssh/authorized_keys
+#fi
 
 #Write initramfs scripts
 #
