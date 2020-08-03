@@ -3,7 +3,7 @@ a hook-script for ubuntu server 14.04 to unlock a LUKS-drive at boot, using ssh,
 
         CAUTION! Usage of this file happens on your own risk!
 
-This script has been tested on fresh installations/upgrades of ubuntu server 14.04 adn 16.04. Unfortunately I don't have the opportunity to test it more detailed.
+This script has been tested on fresh installations/upgrades of ubuntu server 14.04 and 16.04. Unfortunately I don't have the opportunity to test it more in depth.
 
 This script is based on the LUKS-tripple-unlock script (https://github.com/chadoe/luks-triple-unlock) by Martin van Beurden, 
 
@@ -14,14 +14,14 @@ and decryptkeydevice by Franco_bez (https://ubuntuusers.de/user/franco_bez/) as 
 
 All credits and rights for these scripts belong to them.
 
-I made this script beecause I used an usb-drive to unlock my server. Because i wanted to be able to remotely reboot the server if necessary,
+I made this script because I used an usb-drive to unlock my server. Wanting to be able to remotely reboot the server if necessary,
 I had to let the usb-drive plugged into the server, which makes any encryption more or less useless. Because of that I began searching
-for other ways to unlock the serverand found the script i metnioned above, which was very similar to the script I already used for unlocking.
-After having read both of them it was clear they have got the same roots, so I thought it schould be possible to combine them, which is
+for other ways to unlock the server and found the script i mentioned above, which was very similar to the script I already used for unlocking.
+After having read both of them it was clear they have got the same roots, so I thought it should be possible to combine them, which is
 exactly what I did.
 
 
-This Script was tested on Ubuntu Server 14.04. I am not responsible for any changes you make to your system. Continue with caution and ensure to have an initramfs-backup you can use to boot if something strange happens.
+This Script was tested on Ubuntu Server 14.04 and 16.04. I am not responsible for any changes you make to your system. Continue with caution and ensure to have an initramfs-backup you can use to boot if something strange happens.
 
 The script works for me when having one LVM to unlock. This script also works with RAID 1.
 
@@ -53,4 +53,4 @@ may be used under the MIT-License, whereas the script from Franco_be which is fo
 CC BY-NC-SA 2.0 DE by the forum-guidelines from ubuntuusers.de.
 So its a bit unclear which License to use. Because the MIT-License is pretty easy, whereas the CC-License is pretty restrictive it 
 seems to be the most logical decission to use this License for the scripts. I hope this is okay with everyone who contributed to the 
-scripts I used. If it does not, please feel free to contact me so we can decide how to go on.
+scripts I used. If it is not, please feel free to contact me so we can decide how to go on.
