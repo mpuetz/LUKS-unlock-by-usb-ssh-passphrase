@@ -53,4 +53,4 @@ may be used under the MIT-License, whereas the script from Franco_be which is fo
 CC BY-NC-SA 2.0 DE by the forum-guidelines from ubuntuusers.de.
 So its a bit unclear which License to use. Because the MIT-License is pretty easy, whereas the CC-License is pretty restrictive it 
 seems to be the most logical decission to use this License for the scripts. I hope this is okay with everyone who contributed to the 
-scripts I used. If it does not, please feel free to contact me so we can decide how to go on.
+scripts I used. If it is not, please feel free to contact me so we can decide how to go on.
