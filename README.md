@@ -14,10 +14,10 @@ and decryptkeydevice by Franco_bez (https://ubuntuusers.de/user/franco_bez/) as 
 
 All credits and rights for these scripts belong to them.
 
-I made this script beecause I used an usb-drive to unlock my server. Because i wanted to be able to remotely reboot the server if necessary,
+I made this script because I used an usb-drive to unlock my server. Wanting to be able to remotely reboot the server if necessary,
 I had to let the usb-drive plugged into the server, which makes any encryption more or less useless. Because of that I began searching
-for other ways to unlock the server and found the script i metnioned above, which was very similar to the script I already used for unlocking.
-After having read both of them it was clear they have got the same roots, so I thought it schould be possible to combine them, which is
+for other ways to unlock the server and found the script i mentioned above, which was very similar to the script I already used for unlocking.
+After having read both of them it was clear they have got the same roots, so I thought it should be possible to combine them, which is
 exactly what I did.
 
 
