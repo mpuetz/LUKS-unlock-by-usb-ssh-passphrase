@@ -1,0 +1,8 @@
+title: Luks-unlock-by-usb-ssh-passphrase
+description: a hook-script for ubuntu server 14.04 to unlock a LUKS-drive at boot, using ssh, an usb-drive or passphrase
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-hacker
+
+gems:
+  - jekyll-mentions
