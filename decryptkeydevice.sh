@@ -195,7 +195,7 @@ if [ ! -z "$DECRYPTKEYDEVICE_DISKID" ]; then
 			OPENED=$TRUE
 			break
 		fi
-		$DECRYPTKEYDEVICE_FILE=""
+		DECRYPTKEYDEVICE_FILE=""
 	done
 fi
 
